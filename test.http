@@ -1,0 +1,4 @@
+POST http://127.0.0.1:5000/predict
+Content-Type: application/x-www-form-urlencoded
+
+symptoms=itching&symptoms=skin_rash&symptoms=nodal_skin_eruptions

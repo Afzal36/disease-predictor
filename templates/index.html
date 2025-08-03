@@ -1,74 +1,665 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Disease Prediction</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Prediction - AI Health Assistant</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
 
-  <style>
-    input[type="text"] { width: 300px; }
-    .suggestions div { cursor: pointer; padding: 5px; border-bottom: 1px solid #ccc; }
-    .suggestions { max-height: 150px; overflow-y: scroll; border: 1px solid #aaa; width: 300px; }
-    #selected { margin-top: 10px; }
-    .selected-item { background-color: #e3e3ff; display: inline-block; padding: 5px 10px; margin: 5px; border-radius: 5px; }
-  </style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--hover-shadow);
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .card-header h1 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 2.2rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .card-body {
+            padding: 40px;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        #symptomInput {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        #symptomInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            color: #6c757d;
+            font-size: 18px;
+            z-index: 2;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 15px;
+            color: #6c757d;
+            cursor: pointer;
+            font-size: 18px;
+            transition: color 0.3s ease;
+            z-index: 2;
+        }
+
+        .clear-search:hover {
+            color: #dc3545;
+        }
+
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 15px 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            display: none;
+        }
+
+        .suggestions.show {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f8f9fa;
+            display: flex;
+            align-items: center;
+        }
+
+        .suggestion-item:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-item i {
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .selected-symptoms {
+            margin-top: 30px;
+        }
+
+        .selected-symptoms h4 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .selected-symptoms h4 i {
+            margin-right: 10px;
+            color: #667eea;
+        }
+
+        .selected-items-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 60px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .selected-items-container.has-items {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+        }
+
+        .selected-item {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        .selected-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .remove-symptom {
+            margin-left: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            padding: 2px;
+            border-radius: 50%;
+        }
+
+        .remove-symptom:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .predict-btn {
+            background: var(--secondary-gradient);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            background: var(--success-gradient);
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .empty-state i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .card-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .card-body {
+                padding: 20px;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        .suggestions::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .suggestions::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .suggestions::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 10px;
+        }
+
+        .no-results {
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
 </head>
-<body class="container mt-5">
-  <h2 class="mb-4">Select Your Symptoms</h2>
-  <form method="POST" action="/predict">
-    <input class="form-control" type="text" id="symptomInput" placeholder="Type a symptom...">
-    <div class="suggestions" id="suggestionBox"></div>
+<body>
+    <div class="container main-container">
+        <div class="card">
+            <div class="card-header">
+                <h1><i class="fas fa-stethoscope"></i> AI Health Assistant</h1>
+                <p>Select your symptoms for intelligent disease prediction</p>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/predict" id="predictionForm">
+                    <div class="search-container">
+                        <label for="symptomInput" class="form-label fw-bold mb-3">
+                            <i class="fas fa-search"></i> Search Symptoms
+                        </label>
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input 
+                                type="text" 
+                                id="symptomInput" 
+                                class="form-control" 
+                                placeholder="Type to search symptoms (e.g., fever, headache, cough)..."
+                                autocomplete="off"
+                            >
+                            <i class="fas fa-times clear-search" id="clearSearch" style="display: none;"></i>
+                        </div>
+                        <div class="suggestions" id="suggestionBox"></div>
+                    </div>
 
-    <div id="selected" class="mt-3"></div>
-    <div id="hiddenInputs"></div>
+                    <div class="selected-symptoms">
+                        <h4><i class="fas fa-clipboard-list"></i> Selected Symptoms (<span id="symptomCount">0</span>)</h4>
+                        <div class="selected-items-container" id="selectedContainer">
+                            <div class="empty-state">
+                                <i class="fas fa-hand-pointer"></i>
+                                <span>Start typing to search and select symptoms</span>
+                            </div>
+                        </div>
+                    </div>
 
-    <br><input class="btn btn-primary" type="submit" value="Predict">
-  </form>
+                    <div class="stats" id="statsContainer" style="display: none;">
+                        <div class="stat-item">
+                            <div class="stat-value" id="selectedCount">0</div>
+                            <div class="stat-label">Selected</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="availableCount">0</div>
+                            <div class="stat-label">Available</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="matchCount">0</div>
+                            <div class="stat-label">Matches</div>
+                        </div>
+                    </div>
 
-<script>
-  const features = {{ features|tojson }};
-  const selectedSymptoms = new Set();
+                    <div id="hiddenInputs"></div>
 
-  $('#symptomInput').on('input', function () {
-    const query = $(this).val().toLowerCase();
-    const matches = features.filter(f => f.toLowerCase().startsWith(query));
-    const suggestionBox = $('#suggestionBox').empty();
+                    <button type="submit" class="btn predict-btn" id="predictBtn" disabled>
+                        <i class="fas fa-brain"></i> Predict Disease
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
-    matches.forEach(match => {
-      suggestionBox.append(`<div class="suggestion-item">${match}</div>`);
-    });
-  });
+    <script>
+        // Sample features data - replace with your actual data
+        const features = [
+            'fever', 'headache', 'cough', 'fatigue', 'nausea', 'vomiting', 'diarrhea', 
+            'abdominal pain', 'chest pain', 'shortness of breath', 'dizziness', 
+            'muscle aches', 'joint pain', 'sore throat', 'runny nose', 'congestion',
+            'loss of appetite', 'weight loss', 'night sweats', 'chills', 'rash',
+            'itching', 'swelling', 'bruising', 'bleeding', 'weakness', 'numbness',
+            'tingling', 'vision problems', 'hearing problems', 'memory issues'
+        ];
 
-  $(document).on('click', '.suggestion-item', function () {
-    const symptom = $(this).text();
-    if (!selectedSymptoms.has(symptom)) {
-      selectedSymptoms.add(symptom);
+        const selectedSymptoms = new Set();
+        let currentMatches = [];
 
-      $('#selected').append(
-        `<div class="selected-item" data-symptom="${symptom}">
-          ${symptom} <span class="remove" style="color:red; cursor:pointer;">×</span>
-        </div>`
-      );
+        // Initialize stats
+        $('#availableCount').text(features.length);
 
-      $('#hiddenInputs').append(
-        `<input type="hidden" name="symptoms" value="${symptom}" data-symptom="${symptom}">`
-      );
-    }
+        // Enhanced search functionality
+        $('#symptomInput').on('input', function() {
+            const query = $(this).val().toLowerCase().trim();
+            const suggestionBox = $('#suggestionBox');
+            
+            // Show/hide clear button
+            $('#clearSearch').toggle(query.length > 0);
+            
+            if (query.length === 0) {
+                suggestionBox.removeClass('show').empty();
+                $('#matchCount').text(0);
+                return;
+            }
 
-    $('#symptomInput').val('');
-    $('#suggestionBox').empty();
-  });
+            // Enhanced search algorithm
+            const matches = features.filter(feature => {
+                const lowerFeature = feature.toLowerCase();
+                return lowerFeature.includes(query) && !selectedSymptoms.has(feature);
+            }).sort((a, b) => {
+                const aLower = a.toLowerCase();
+                const bLower = b.toLowerCase();
+                const aStartsWith = aLower.startsWith(query);
+                const bStartsWith = bLower.startsWith(query);
+                
+                // Prioritize exact matches, then starts with, then contains
+                if (aStartsWith && !bStartsWith) return -1;
+                if (!aStartsWith && bStartsWith) return 1;
+                return a.localeCompare(b);
+            });
 
-  // Remove symptom on "×" click
-  $(document).on('click', '.remove', function () {
-    const parentDiv = $(this).parent();
-    const symptom = parentDiv.data('symptom');
+            currentMatches = matches;
+            $('#matchCount').text(matches.length);
 
-    selectedSymptoms.delete(symptom);
-    parentDiv.remove();
-    $(`#hiddenInputs input[data-symptom="${symptom}"]`).remove();
-  });
-</script>
+            suggestionBox.empty();
+            
+            if (matches.length === 0) {
+                suggestionBox.html('<div class="no-results"><i class="fas fa-search"></i> No symptoms found matching your search</div>');
+            } else {
+                matches.slice(0, 10).forEach(match => {
+                    const highlightedMatch = highlightMatch(match, query);
+                    suggestionBox.append(`
+                        <div class="suggestion-item" data-symptom="${match}">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>${highlightedMatch}</span>
+                        </div>
+                    `);
+                });
+                
+                if (matches.length > 10) {
+                    suggestionBox.append(`<div class="no-results">...and ${matches.length - 10} more results</div>`);
+                }
+            }
+            
+            suggestionBox.addClass('show');
+        });
 
+        // Highlight matching text
+        function highlightMatch(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<strong>$1</strong>');
+        }
+
+        // Clear search
+        $('#clearSearch').on('click', function() {
+            $('#symptomInput').val('').focus();
+            $('#suggestionBox').removeClass('show').empty();
+            $(this).hide();
+            $('#matchCount').text(0);
+        });
+
+        // Select symptom
+        $(document).on('click', '.suggestion-item', function() {
+            const symptom = $(this).data('symptom');
+            if (symptom && !selectedSymptoms.has(symptom)) {
+                addSymptom(symptom);
+                $('#symptomInput').val('').focus();
+                $('#suggestionBox').removeClass('show').empty();
+                $('#clearSearch').hide();
+                $('#matchCount').text(0);
+            }
+        });
+
+        // Add symptom function
+        function addSymptom(symptom) {
+            selectedSymptoms.add(symptom);
+            updateSelectedDisplay();
+            updateStats();
+            updatePredictButton();
+        }
+
+        // Remove symptom function
+        function removeSymptom(symptom) {
+            selectedSymptoms.delete(symptom);
+            updateSelectedDisplay();
+            updateStats();
+            updatePredictButton();
+        }
+
+        // Update selected symptoms display
+        function updateSelectedDisplay() {
+            const container = $('#selectedContainer');
+            const count = selectedSymptoms.size;
+            
+            if (count === 0) {
+                container.removeClass('has-items').html(`
+                    <div class="empty-state">
+                        <i class="fas fa-hand-pointer"></i>
+                        <span>Start typing to search and select symptoms</span>
+                    </div>
+                `);
+                $('#hiddenInputs').empty();
+            } else {
+                container.addClass('has-items').empty();
+                $('#hiddenInputs').empty();
+                
+                selectedSymptoms.forEach(symptom => {
+                    container.append(`
+                        <div class="selected-item" data-symptom="${symptom}">
+                            <span>${symptom}</span>
+                            <i class="fas fa-times remove-symptom" data-symptom="${symptom}"></i>
+                        </div>
+                    `);
+                    
+                    $('#hiddenInputs').append(`
+                        <input type="hidden" name="symptoms" value="${symptom}" data-symptom="${symptom}">
+                    `);
+                });
+            }
+            
+            $('#symptomCount').text(count);
+        }
+
+        // Remove symptom on click
+        $(document).on('click', '.remove-symptom', function(e) {
+            e.stopPropagation();
+            const symptom = $(this).data('symptom');
+            removeSymptom(symptom);
+        });
+
+        // Update statistics
+        function updateStats() {
+            const selectedCount = selectedSymptoms.size;
+            $('#selectedCount').text(selectedCount);
+            
+            if (selectedCount > 0) {
+                $('#statsContainer').show();
+            } else {
+                $('#statsContainer').hide();
+            }
+        }
+
+        // Update predict button state
+        function updatePredictButton() {
+            const btn = $('#predictBtn');
+            const hasSymptoms = selectedSymptoms.size > 0;
+            
+            btn.prop('disabled', !hasSymptoms);
+            
+            if (hasSymptoms) {
+                btn.html('<i class="fas fa-brain"></i> Predict Disease');
+            } else {
+                btn.html('<i class="fas fa-exclamation-circle"></i> Select Symptoms First');
+            }
+        }
+
+        // Hide suggestions when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.search-container').length) {
+                $('#suggestionBox').removeClass('show');
+            }
+        });
+
+        // Keyboard navigation
+        $('#symptomInput').on('keydown', function(e) {
+            const suggestions = $('.suggestion-item');
+            const active = $('.suggestion-item.active');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (active.length === 0) {
+                    suggestions.first().addClass('active');
+                } else {
+                    active.removeClass('active').next('.suggestion-item').addClass('active');
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (active.length === 0) {
+                    suggestions.last().addClass('active');
+                } else {
+                    active.removeClass('active').prev('.suggestion-item').addClass('active');
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (active.length > 0) {
+                    active.click();
+                } else if (suggestions.length === 1) {
+                    suggestions.first().click();
+                }
+            } else if (e.key === 'Escape') {
+                $('#suggestionBox').removeClass('show');
+                $(this).blur();
+            }
+        });
+
+        // Add active state styling
+        $(document).on('mouseenter', '.suggestion-item', function() {
+            $('.suggestion-item').removeClass('active');
+            $(this).addClass('active');
+        });
+
+        // Form submission with loading state
+        $('#predictionForm').on('submit', function() {
+            const btn = $('#predictBtn');
+            btn.addClass('loading').html('<i class="fas fa-spinner fa-spin"></i> Analyzing...');
+        });
+
+        // Initialize
+        updatePredictButton();
+    </script>
 </body>
 </html>

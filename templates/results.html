@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Results - AI Health Assistant</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+        }
+
+        .main-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card-header {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .card-header h1 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 2rem;
+        }
+
+        .card-body {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .prediction-result {
+            background: var(--success-gradient);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prediction-result.error {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .prediction-result h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+
+        .prediction-result p {
+            font-size: 1.1rem;
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .confidence-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .confidence-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: var(--success-gradient);
+            border-radius: 10px;
+            transition: width 2s ease-in-out;
+        }
+
+        .symptoms-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .symptom-tag {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            margin: 3px;
+            display: inline-block;
+        }
+
+        .back-btn {
+            background: var(--primary-gradient);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .back-btn i {
+            margin-right: 8px;
+        }
+
+        .disclaimer {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container main-container">
+        <div class="card">
+            <div class="card-header">
+                <h1><i class="fas fa-chart-line"></i> Prediction Results</h1>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                    <div class="prediction-result error">
+                        <h2>Error</h2>
+                        <p>{{ error }}</p>
+                    </div>
+                {% else %}
+                    <div class="prediction-result">
+                        <h2>{{ predicted_disease }}</h2>
+                        <p>Predicted Disease</p>
+                    </div>
+
+                    {% if confidence > 0 %}
+                    <div class="confidence-section">
+                        <h5><i class="fas fa-chart-bar"></i> Confidence Level</h5>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: {{ confidence }}%"></div>
+                        </div>
+                        <strong>{{ confidence }}%</strong>
+                    </div>
+                    {% endif %}
+
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ num_symptoms }}</div>
+                            <div class="stat-label">Symptoms</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ confidence }}%</div>
+                            <div class="stat-label">Confidence</div>
+                        </div>
+                    </div>
+
+                    {% if selected_symptoms %}
+                    <div class="symptoms-section">
+                        <h5><i class="fas fa-list"></i> Analyzed Symptoms:</h5>
+                        {% for symptom in selected_symptoms %}
+                            <span class="symptom-tag">{{ symptom.replace('_', ' ').title() }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                <div class="disclaimer">
+                    <strong><i class="fas fa-exclamation-triangle"></i> Medical Disclaimer:</strong> 
+                    This AI prediction is for informational purposes only. Please consult a healthcare professional for proper medical diagnosis and treatment.
+                </div>
+
+                <a href="{{ url_for('index') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Make Another Prediction
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
